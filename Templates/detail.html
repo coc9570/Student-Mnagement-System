@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}{{ Details }}{% endblock %}
+{% load staticfiles %}
+
+{% block body %}
+
+<script src="{% static 'js/jquery.chart.js' %}"></script>
+<link rel="stylesheet" href="{% static 'js/chart.css' %}">
+<script>
+ $(function() {
+            $('.donut-chart').cssCharts({type:"donut"}).trigger('show-donut-chart');
+        });
+</script>
+<div class="container-fluid songs-container">
+
+    <div class="row">
+        <div class="col-sm-4 col-md-3">
+            <div class="panel panel-default">
+			  {% if user.student %}
+                <div class="panel-body">
+                    <a href="{% url 'detail' user.username %}">
+                        {% if user.student.photo %}
+                            <img src="{{ user.student.photo.url }}" class="img-responsive">
+                        {% else %}
+                            <h3>No image to display</h3>
+                        {% endif %}						
+                    </a>
+                    <h1>{{ user.first_name }} <small>{{ user.last_name  }}</small></h1>
+                    <small>{{ user.email }}</small>
+                </div>
+			  {% else %}
+             <div class="panel-body">
+                 <a href="{% url 'detail' user.username %}">
+                        {% if user.faculty.photo %}
+                            <img src="{{ user.faculty.photo.url }}" class="img-responsive">
+                        {% else %}
+                            <h3>No image to display</h3>
+                        {% endif %}						
+                 </a>
+                 <h1>{{ user.first_name }} <small>{{ user.last_name  }}</small></h1>
+                 <small>{{ user.email }}</small>
+             {% if user.faculty %}
+					        <h4> Specializes in  <strong>{{ user.faculty.specialization }} </strong></h4>
+             {% endif %}
+             </div>
+			  {% endif %}
+
+            </div>
+        </div>
+		 <div class="col-sm-8 col-md-9">
+		 
+                {% if user.student %}
+                    <div class="well"> <strong>Student</strong></div>
+                    {% include 'login/student_detail.html' %}
+                {% elif user.faculty %}
+                    <div class="well"><strong>Faculty</strong></div>
+                    {% include 'login/faculty_detail.html' %}
+                {% elif user.is_superuser %}
+                    <div class="well"> <strong>Administrator</strong></div>
+                {% endif %}
+
+        </div>
+
+
+ 
+
+    </div>
+
+</div>
+
+{% endblock %}

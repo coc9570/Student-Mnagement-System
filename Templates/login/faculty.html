@@ -1,0 +1,215 @@
+<script>
+function overlay(n) {
+
+	field = document.getElementById("hidden_field");
+	field.value=n;
+	document.getElementById("subject_name").innerHTML=n;
+	document.getElementById("attendance_confirm").action="attendance/"+n;
+}
+</script>
+<div id="subject" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+	<div class="modal-content">
+	  <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">&times;</button>
+		<h4 class="modal-title">Add New Subject to Your Profile</h4>
+	  </div>
+	  <div class="modal-body">
+	    <div class="alert alert-warning">
+			<strong>Note!</strong> You can also duplicate one of the following subjects taught by other professors too...
+		</div>
+          <div class="list-group">
+
+                    {% for s in subjects %}
+									  <a href="{% url 'selectSubject' s.id %}" class="list-group-item">{{  s.subject_name }} by Prof.{{  s.faculty.user.first_name }}</a>
+                    {% endfor %}
+                </div>
+		<hr>
+		<div class="alert alert-warning">
+			<strong>OR...</strong> Add a new subject
+		</div>
+		<form action="{% url 'newSubject' %}" method="post">
+					{% csrf_token %}
+					<input type="text" name="name" id="name" value="" />
+					<button type="submit" name="accept" value="accept" class="btn btn-success btn-xs">
+						<span class="glyphicon glyphicon-plus"></span>&nbsp;add
+					</button>
+		</form>
+	  </div>
+	  <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	  </div>
+	</div>
+
+  </div>
+</div>
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+	<div class="modal-content">
+	  <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">&times;</button>
+		<h4 class="modal-title">Proceed to take Attendance....</h4>
+	  </div>
+	  <div class="modal-body">
+		<form id="attendance_confirm" action="" method="post">
+					{% csrf_token %}
+
+					<input type="hidden" name="subject_name" id="hidden_field" value="" />
+                    <br>
+					<div class="alert alert-warning">
+					<label>Date: {{day}}</label><hr>
+					<label for="Subject">Subject: </label> <label for="SubjectName" id="subject_name"></label>
+					</div>
+					
+                    <hr>
+					<button type="submit" class="btn btn-success btn-xs">
+					 <span class="glyphicon glyphicon-ok"></span>&nbsp; Proceed
+					</button>
+		</form>
+	  </div>
+	  <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	  </div>
+	</div>
+
+  </div>
+</div>
+<div class="panel-group">
+  <div class="panel panel-info">
+	<div class="panel-heading">Your Subjects <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#subject"><span class="glyphicon glyphicon-plus"></span>&nbsp; Add</button></div>
+		<div class="panel-body">
+                <div class="list-group">
+
+                    {% for s in  user.faculty.teaches.all%}
+									  <a href="#" class="list-group-item">{{ s.subject_name }}</a>
+                    {% endfor %}
+                </div>
+							
+							
+		</div>
+		
+  </div>
+
+<div class="panel-group">
+  <div class="panel panel-info">
+	<div class="panel-heading">View Records</div>
+		<div class="panel-body">
+                <table class="table">
+                    {% for s in  user.faculty.teaches.all%}
+                        <tr>
+                            <td>
+                            View Students record for  <a href="{% url 'viewAttendance' s.subject_name %}">{{ s.subject_name }}</a>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+                </table>
+           <a href="{% url 'studentlist' %}"> <button type="button" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-th"></span>&nbsp; All Students</button></a>
+		</div>
+
+  </div>
+
+ <div class="panel panel-info">
+	<div class="panel-heading">Fill Todays Attendance</div>
+	<div class="panel-body">
+	{% if user.faculty.teaches.all %}
+	{% for s in  user.faculty.teaches.all%}
+	<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModal" onclick="overlay('{{ s.subject_name }}')"><span class="glyphicon glyphicon-th"></span>&nbsp; {{ s.subject_name }}</button>
+    {% endfor %}
+	{%else%}
+	You have to add at least one subjects to fill attendance...
+	{% endif %}
+	</div>
+  </div>
+  <div class="panel panel-info">
+	<div class="panel-heading">
+	Leaves
+	<a href="{% url 'newLeave' %}" class="btn btn-info btn-xs" role="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span>Apply</a>
+	
+	<button class='btn btn-success btn-xs' data-toggle="collapse" data-target="#history"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Leave Request Status</button><br>
+	</div>
+	<div class="panel-body">
+	<h3> Leave Records </h3>	
+		<div id="history" class="collapse">
+	                    <table class="table">
+                        <thead>
+                        <tr>
+							<th>S.no.</th>
+                            <th>Start Date</th>
+                            <th>Start End</th>
+							<th>Days</th>
+							<th>Your Reason</th>
+							<th>Response</th>
+							<th>Verdict</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+						
+                        {% for r in user.faculty.request.all %}
+						
+                            <tr>
+								<td>
+                                   {{ forloop.counter }}
+                                </td>
+                                <td>
+                                   {{ r.start }}
+                                </td>
+                                <td>
+                                    {{ r.end }}
+                                </td>
+							    <td>
+                                    {{ r.days }}
+                                </td>
+								<td>
+									{{ r.reason }}
+								</td>
+								<td>
+									{%if r.status == 3 %}
+										<span class="label label-primary">Pending</span>
+									{%elif r.status == 1 %}
+										<span class="label label-success">Accepted</span>
+									{%elif r.status == 2 %}
+										<span class="label label-danger">Rejected</span>
+									{% endif %}
+									
+                                </td>
+								<td>
+									{{ r.verdict }}
+								</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+					</table>
+	</div>
+	 
+	<table class="table">
+		<thead>
+			<th>Type</th>
+			<th>Remaining</th>
+		</thead>
+		<tbody>
+			<tr>
+				<td>Earned Leaves</td>
+				<td>{{ user.faculty.leaverecord.earned_leave }}</td>
+			</tr>
+			<tr>
+				<td>Sick Leaves</td>
+				<td>{{ user.faculty.leaverecord.sick_leave }}</td>
+			</tr>
+			<tr>
+				<td>Casual Leaves</td>
+				<td>{{ user.faculty.leaverecord.casual_leave }}</td>
+			</tr>
+		</tbody>
+
+	</table>
+
+	
+
+
+
+  </div>
+  
+</div>
